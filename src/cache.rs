@@ -37,7 +37,7 @@ impl Cache {
         }
     }
 
-    pub fn get(&mut self, key: &(String, u64, u64, Option<u64>)) -> Option<Arc<dyn std::any::Any>> {
+    pub fn get(&mut self, key: &(String, u64, u64, Option<u64>)) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
         let entry = self.cache.get(key);
         match entry {
             Some(ent) => {

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, ops::Deref, sync::Arc};
 use reqwest::{
     ClientBuilder, 
     header::{self, HeaderMap}, 
@@ -129,7 +129,7 @@ impl AmariClient {
     }
 
     pub async fn fetch_leaderboard(
-        &self, 
+        &mut self, 
         guild_id: u64, 
         weekly: Option<bool>, 
         raw: Option<bool>,
@@ -138,7 +138,7 @@ impl AmariClient {
         cache: bool,
     ) -> Result<Leaderboard, reqwest::Error> {
         if cache {
-
+            // TODO: Cache update
         }
         
         let mut params = HashMap::new();
