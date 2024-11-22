@@ -198,3 +198,6 @@ impl AmariClient {
         client.default_headers(default_header).build().unwrap()
     }
 }
+
+unsafe impl Send for AmariClient {}
+unsafe impl Sync for AmariClient {}
