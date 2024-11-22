@@ -83,3 +83,6 @@ impl Cache {
         }
     }
 }
+
+unsafe impl Send for Cache {}
+unsafe impl Sync for Cache {}
