@@ -5,25 +5,27 @@ mod tests {
     #[tokio::test]
     async fn test_client() {
         dotenv().expect("Failed to load .env file");
-        let token: String = std::env::var("API_SECRET").unwrap();
+        let token: String = std::env::var("AMARI_TOKEN").unwrap();
 
-        let mut client = AmariClient::default();
+        let mut client = AmariClient::new();
         client.init(token);
 
-        let user = client.fetch_user(1087783849183940708, 607197619193643029).await;
+        let mut user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
         dbg!(&user);
 
+        user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
+
         assert_eq!(user.unwrap().id, 607197619193643029);
-        let users = client.fetch_users(1087783849183940708, vec![790507101868654602, 607197619193643029]).await;
+        let users = client.fetch_users(1087783849183940708, vec![790507101868654602, 607197619193643029], true).await;
 
         dbg!(&users);
         assert_eq!(users.unwrap().get_user(607197619193643029).unwrap().id, 607197619193643029);
 
-        let lb = client.fetch_leaderboard(1087783849183940708, None, None, None, Some(5)).await;
+        let lb = client.fetch_leaderboard(1087783849183940708, None, None, None, Some(5), true).await;
         dbg!(&lb);
 
         assert_eq!(lb.unwrap().count, 5);
-        let rewards = client.fetch_rewards(1087783849183940708, None, Some(5)).await;
+        let rewards = client.fetch_rewards(1087783849183940708, None, Some(5), true).await;
 
         dbg!(&rewards);
         assert_eq!(rewards.unwrap().count, 5);
