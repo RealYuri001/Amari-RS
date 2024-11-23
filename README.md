@@ -8,13 +8,9 @@ Rust 1.65.0 or later is required for compability.
 
 ## Installation
 
-Simply by adding the dependency in Cargo.toml:
-```
-[dependencies]
-amari-rs = "0.1.0"
-```
+Currently, there's no cargo support yet. Use the following instead:
 
-Or by using:
-```
-cargo add amari-rs
+```toml
+[dependencies]
+amari-rs = { git = "https://github.com/RealYuri001/Amari-RS", branch = "master" }
 ```
