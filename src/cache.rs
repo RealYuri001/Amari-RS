@@ -23,7 +23,7 @@ impl CacheEntry {
 pub struct Cache {
     ttl: u32,
     max_bytes: usize,
-    cache: HashMap<(String, u64, u64, Option<u64>), CacheEntry>,
+    cache: HashMap<(String, u64, u64, Option<u64>), CacheEntry>, // TODO: Fix this type.
     total_size: usize,
 }
 

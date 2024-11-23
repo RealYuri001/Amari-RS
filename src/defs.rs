@@ -61,3 +61,13 @@ impl Users {
         self.total_members
     }
 }
+
+impl Rewards {
+    pub fn get_role(&self, role_id: u64) -> Option<&RewardRole> {
+        self.roles.iter().find(|r| r.role_id == role_id)
+    }
+
+    pub fn len(&self) -> usize {
+        self.count as usize
+    }
+}

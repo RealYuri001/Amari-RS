@@ -1,37 +1,6 @@
 mod tests {
-    /*
-    use std::{any::Any, sync::Arc};
-
-    use amari_rs::cache::{CacheDataEntry, CacheSystem};
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Deserialize, Serialize, Clone, Debug)]
-    struct CacheDataTester {
-        id: u64,
-        name: String,
-    }
-
-    #[derive(Deserialize, Serialize, Clone, Debug)]
-    struct CacheDataTester2 {
-        xn: u64,
-        name: String,
-    }
-
-    #[tokio::test]
-    async fn test_cache() {
-        let mut cacher: CacheSystem = CacheSystem::new(60);
-        let data = CacheDataTester { id: 1, name: "test".to_string() };
-
-        cacher.set(("x".into(), 111, 0), Arc::new(data.clone().into()));
-        let check1: Arc<CacheDataTester> = cacher.get(("x".into(), 111, 0)).unwrap();
-
-        dbg!(&check1);
-        assert_eq!(check1.id, data.id);
-
-        let data2 = CacheDataTester2 { xn: 1, name: "test".to_string() };
-        cacher.set(("x".into(), 111, 0), Arc::new(data2.clone()));
-    }
-    */
+    use amari_rs::api::AmariClient;
+    use dotenvy::dotenv;
 
     use std::sync::Arc;
     use amari_rs::cache::Cache;
@@ -59,5 +28,31 @@ mod tests {
         assert_eq!(data2.test, 4423);
 
         dbg!(&data2.test);
+    }
+
+    #[tokio::test]
+    async fn cache_bench() {
+        dotenv().expect("Failed to load .env file");
+
+        let mut client = AmariClient::new();
+        client.init(std::env::var("AMARI_TOKEN").unwrap());
+
+        let start = std::time::Instant::now();
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
+        
+        println!("Before cache: {}", start.elapsed().as_secs_f64());
+        println!("User: {:#?}", user.unwrap().id);
+
+        let start = std::time::Instant::now();
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
+
+        println!("After cache: {}", start.elapsed().as_secs_f64());
+        println!("User: {:#?}", user.unwrap());
+
+        let start = std::time::Instant::now();
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
+
+        println!("After cache (second time): {}", start.elapsed().as_secs_f64());
+        println!("User: {:#?}", user.unwrap());
     }
 }

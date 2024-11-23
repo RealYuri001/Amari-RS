@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Deref, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use reqwest::{
     ClientBuilder, 
     header::{self, HeaderMap}, 
@@ -36,7 +36,7 @@ impl AmariClient {
         AmariClient {
             token: String::new(),
             client: Client::new(),
-            cacher: Cache::new(60, 32 * 1024 * 1024),
+            cacher: Cache::new(60, 256 * 1024 * 1024),
         }
     }
 
@@ -134,13 +134,10 @@ impl AmariClient {
         weekly: Option<bool>, 
         raw: Option<bool>,
         page: Option<usize>,
-        limit: Option<usize>,
-        cache: bool,
+        limit: Option<usize>
     ) -> Result<Leaderboard, reqwest::Error> {
-        if cache {
-            // TODO: Cache update
-        }
-        
+        // Doesn't support caching until caching system is improved.
+          
         let mut params = HashMap::new();
         let weekly = weekly.unwrap_or(false);
 

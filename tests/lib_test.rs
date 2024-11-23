@@ -21,7 +21,7 @@ mod tests {
         dbg!(&users);
         assert_eq!(users.unwrap().get_user(607197619193643029).unwrap().id, 607197619193643029);
 
-        let lb = client.fetch_leaderboard(1087783849183940708, None, None, None, Some(5), true).await;
+        let lb = client.fetch_leaderboard(1087783849183940708, None, None, None, Some(5)).await;
         dbg!(&lb);
 
         assert_eq!(lb.unwrap().count, 5);
