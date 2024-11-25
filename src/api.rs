@@ -25,6 +25,7 @@ use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
 pub struct AmariClient {
     client: Client,
     cacher: Cache,
+    cache_enabled: bool,
 }
 
 impl AmariClient {
@@ -39,17 +40,17 @@ impl AmariClient {
         AmariClient {
             client: client.default_headers(default_header).build().unwrap(),
             cacher: Cache::new(60, 256 * 1024 * 1024),
+            cache_enabled: true,
         }
     }
 
-    pub async fn fetch_user(
-        &mut self,
-        guild_id: u64,
-        user_id: u64,
-        cache: bool,
-    ) -> reqwest::Result<User> {
+    pub fn toggle_cache(&mut self, enable: bool) {
+        self.cache_enabled = enable;
+    }
+
+    pub async fn fetch_user(&mut self, guild_id: u64, user_id: u64) -> reqwest::Result<User> {
         let url = format!("{BASE_URL}/guild/{guild_id}/member/{user_id}");
-        if cache {
+        if self.cache_enabled {
             let key = FetchType::User(guild_id, user_id);
             let data = self.cacher.get(&key);
 
@@ -72,9 +73,8 @@ impl AmariClient {
         &mut self,
         guild_id: u64,
         user_ids: Vec<u64>,
-        cache: bool,
     ) -> reqwest::Result<Users> {
-        if cache {
+        if self.cache_enabled {
             let mut users: Vec<User> = Vec::new();
             let mut uncached_users: Vec<u64> = Vec::new();
 
@@ -163,9 +163,8 @@ impl AmariClient {
         guild_id: u64,
         page: Option<u32>,
         limit: Option<u32>,
-        cache: bool,
     ) -> Result<Rewards, reqwest::Error> {
-        if cache {
+        if self.cache_enabled {
             let key = FetchType::Reward(guild_id, page.unwrap_or(1), limit.unwrap_or(50));
             if let Some(rewards) = self.cacher.get(&key) {
                 return Ok(rewards.downcast_ref::<Rewards>().unwrap().clone());
