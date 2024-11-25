@@ -11,7 +11,7 @@ pub struct CacheEntry {
 
 impl CacheEntry {
     pub fn new(data: Arc<dyn std::any::Any + Send + Sync>, size: usize) -> Self {
-        CacheEntry {
+        Self {
             data,
             timestamp: Instant::now().elapsed().as_secs(),
             size,
@@ -28,8 +28,9 @@ pub struct Cache {
 }
 
 impl Cache {
+    #[must_use]
     pub fn new(ttl: u32, max_bytes: usize) -> Self {
-        Cache {
+        Self {
             ttl,
             max_bytes,
             cache: HashMap::new(),
@@ -37,11 +38,14 @@ impl Cache {
         }
     }
 
-    pub fn get(&mut self, key: &(String, u64, u64, Option<u64>)) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
+    pub fn get(
+        &mut self,
+        key: &(String, u64, u64, Option<u64>),
+    ) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
         let entry = self.cache.get(key);
         match entry {
             Some(ent) => {
-                if Instant::now().elapsed().as_secs() - ent.timestamp < self.ttl as u64 {
+                if Instant::now().elapsed().as_secs() - ent.timestamp < u64::from(self.ttl) {
                     Some(ent.data.clone())
                 } else {
                     self.remove_entry(key);
@@ -52,9 +56,13 @@ impl Cache {
         }
     }
 
-    pub fn set(&mut self, key: &(String, u64, u64, Option<u64>), data: Arc<dyn std::any::Any + Send + Sync>) {
+    pub fn set(
+        &mut self,
+        key: &(String, u64, u64, Option<u64>),
+        data: Arc<dyn std::any::Any + Send + Sync>,
+    ) {
         // Dirty downcasting to unsigned char* type and get length.
-        let data_size = data.downcast_ref::<Vec<u8>>().map(|v| v.len()).unwrap_or(0);
+        let data_size = data.downcast_ref::<Vec<u8>>().map_or(0, std::vec::Vec::len);
 
         if self.total_size + data_size > self.max_bytes {
             self.enforce_size_limit();

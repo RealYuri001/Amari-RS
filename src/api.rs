@@ -1,26 +1,23 @@
-use std::{collections::HashMap, sync::Arc};
 use reqwest::{
-    ClientBuilder, 
-    header::{self, HeaderMap}, 
-    Client
+    header::{self, HeaderMap},
+    Client, ClientBuilder,
 };
+use std::{collections::HashMap, sync::Arc};
 
+use super::defs::{Leaderboard, Rewards, User, Users, BASE_URL};
 use crate::cache::Cache;
-use super::defs::{
-    Leaderboard, Rewards, User, Users, BASE_URL
-};
 
 /// The client used to make requests to the Amari API.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use amari_rs::api::AmariClient;
 /// use std::env;
 /// use dotenvy::dotenv;
-/// 
+///
 /// dotenv().expect("Failed to load .env file");
-/// 
+///
 /// let mut client = AmariClient::new();
 /// client.init(env::var("AMARI_TOKEN").unwrap());
 /// ```
@@ -28,12 +25,19 @@ use super::defs::{
 pub struct AmariClient {
     token: String,
     client: Client,
-    cacher: Cache
+    cacher: Cache,
+}
+
+impl Default for AmariClient {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AmariClient {
+    #[must_use]
     pub fn new() -> Self {
-        AmariClient {
+        Self {
             token: String::new(),
             client: Client::new(),
             cacher: Cache::new(60, 256 * 1024 * 1024),
@@ -46,11 +50,11 @@ impl AmariClient {
     }
 
     pub async fn fetch_user(
-        &mut self, 
-        guild_id: u64, 
+        &mut self,
+        guild_id: u64,
         user_id: u64,
         cache: bool,
-    ) -> Result<User, reqwest::Error> {
+    ) -> reqwest::Result<User> {
         let url = format!("{BASE_URL}/guild/{guild_id}/member/{user_id}");
         if cache {
             let key = &("fetch_user".into(), guild_id, user_id, None);
@@ -64,19 +68,19 @@ impl AmariClient {
             let conv = data.json::<User>().await?;
 
             self.cacher.set(key, Arc::new(conv.clone()));
-            return Ok(conv)
+            return Ok(conv);
         }
-        
+
         let data = self.client.get(url).send().await?;
         data.json::<User>().await
     }
 
     pub async fn fetch_users(
-        &mut self, 
-        guild_id: u64, 
+        &mut self,
+        guild_id: u64,
         user_ids: Vec<u64>,
-        cache: bool
-    ) -> Result<Users, reqwest::Error> {
+        cache: bool,
+    ) -> reqwest::Result<Users> {
         if cache {
             let mut users: Vec<User> = Vec::new();
             let mut uncached_users: Vec<u64> = Vec::new();
@@ -90,8 +94,9 @@ impl AmariClient {
                 }
             }
 
-            if uncached_users.len() > 0 {
-                let converted: Vec<String> = uncached_users.iter().map(|&x| x.to_string()).collect();
+            if !uncached_users.is_empty() {
+                let converted: Vec<String> =
+                    uncached_users.iter().map(|&x| x.to_string()).collect();
                 let mut body = HashMap::new();
 
                 body.insert("members", converted);
@@ -112,10 +117,10 @@ impl AmariClient {
                 members: users.clone(),
                 total_members: users.len(),
                 queried_members: user_ids.len(),
-                guild_id
+                guild_id,
             };
 
-            return Ok(conv)
+            return Ok(conv);
         }
 
         let mut body = HashMap::new();
@@ -129,21 +134,22 @@ impl AmariClient {
     }
 
     pub async fn fetch_leaderboard(
-        &mut self, 
-        guild_id: u64, 
-        weekly: Option<bool>, 
+        &self,
+        guild_id: u64,
+        weekly: Option<bool>,
         raw: Option<bool>,
         page: Option<usize>,
-        limit: Option<usize>
-    ) -> Result<Leaderboard, reqwest::Error> {
+        limit: Option<usize>,
+    ) -> reqwest::Result<Leaderboard> {
         // Doesn't support caching until caching system is improved.
-          
+
         let mut params = HashMap::new();
         let weekly = weekly.unwrap_or(false);
 
-        if raw.is_some() && page.is_some() {
-            panic!("raw endpoint does not support pagination.");
-        }
+        assert!(
+            !(raw.is_some() && page.is_some()),
+            "raw endpoint does not support pagination."
+        );
 
         if page.is_some() {
             params.insert("page", page.unwrap());
@@ -155,20 +161,25 @@ impl AmariClient {
 
         let lb_type = if weekly { "weekly" } else { "leaderboard" };
         let url = format!("{BASE_URL}/guild/{lb_type}/{guild_id}");
-        
+
         let data = self.client.get(url).query(&params).send().await.unwrap();
         data.json::<Leaderboard>().await
     }
 
     pub async fn fetch_rewards(
-        &mut self, 
-        guild_id: u64, 
-        page: Option<usize>, 
+        &mut self,
+        guild_id: u64,
+        page: Option<usize>,
         limit: Option<usize>,
-        cache: bool
-    ) -> Result<Rewards, reqwest::Error> {
+        cache: bool,
+    ) -> reqwest::Result<Rewards> {
         if cache {
-            let key = &("fetch_rewards".into(), guild_id, page.unwrap_or(1) as u64, Some(limit.unwrap_or(50) as u64));
+            let key = &(
+                "fetch_rewards".into(),
+                guild_id,
+                page.unwrap_or(1) as u64,
+                Some(limit.unwrap_or(50) as u64),
+            );
             if let Some(rewards) = self.cacher.get(key) {
                 return Ok(rewards.downcast_ref::<Rewards>().unwrap().clone());
             }
