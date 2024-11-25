@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 
-/// Base URL for AmariBot API.
-pub const BASE_URL: &'static str = "https://amaribot.com/api/v1";
+/// Base URL for `AmariBot` API.
+pub const BASE_URL: &str = "https://amaribot.com/api/v1";
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum FetchType {
@@ -65,21 +65,25 @@ pub struct Rewards {
 }
 
 impl Users {
+    #[must_use]
     pub fn get_user(&self, user_id: u64) -> Option<&User> {
         self.members.iter().find(|u| u.id == user_id)
     }
 
-    pub fn len(&self) -> usize {
+    #[must_use]
+    pub const fn len(&self) -> usize {
         self.total_members
     }
 }
 
 impl Rewards {
+    #[must_use]
     pub fn get_role(&self, role_id: u64) -> Option<&RewardRole> {
         self.roles.iter().find(|r| r.role_id == role_id)
     }
 
-    pub fn len(&self) -> usize {
-        self.count as usize
+    #[must_use]
+    pub const fn len(&self) -> u64 {
+        self.count
     }
 }

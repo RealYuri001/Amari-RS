@@ -3,8 +3,6 @@ use reqwest::{
     Client, ClientBuilder,
 };
 use std::{collections::HashMap, sync::Arc};
-
-use crate::cache::Cache;
 use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
 
 /// The client used to make requests to the Amari API.
@@ -38,8 +36,6 @@ impl AmariClient {
 
         AmariClient {
             client: client.default_headers(default_header).build().unwrap(),
-            cacher: Cache::new(60, 256 * 1024 * 1024),
-        }
     }
 
     pub async fn fetch_user(
@@ -133,15 +129,16 @@ impl AmariClient {
         raw: Option<bool>,
         page: Option<usize>,
         limit: Option<usize>,
-    ) -> Result<Leaderboard, reqwest::Error> {
+    ) -> reqwest::Result<Leaderboard> {
         // Doesn't support caching until caching system is improved.
 
         let mut params = HashMap::new();
         let weekly = weekly.unwrap_or(false);
 
-        if raw.is_some() && page.is_some() {
-            panic!("raw endpoint does not support pagination.");
-        }
+        assert!(
+            !(raw.is_some() && page.is_some()),
+            "raw endpoint does not support pagination."
+        );
 
         if page.is_some() {
             params.insert("page", page.unwrap());

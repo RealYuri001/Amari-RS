@@ -2,5 +2,5 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 
 pub mod api;
-pub mod defs;
 pub mod cache;
+pub mod defs;
