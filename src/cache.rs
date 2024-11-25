@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
+use crate::defs::FetchType;
+
 #[derive(Debug, Clone)]
 pub struct CacheEntry {
     data: Arc<dyn std::any::Any + Send + Sync>,
@@ -23,7 +25,7 @@ impl CacheEntry {
 pub struct Cache {
     ttl: u32,
     max_bytes: usize,
-    cache: HashMap<(String, u64, u64, Option<u64>), CacheEntry>, // TODO: Fix this type.
+    cache: HashMap<FetchType, CacheEntry>, // TODO: Fix this type.
     total_size: usize,
 }
 
@@ -38,10 +40,7 @@ impl Cache {
         }
     }
 
-    pub fn get(
-        &mut self,
-        key: &(String, u64, u64, Option<u64>),
-    ) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
+    pub fn get(&mut self, key: &FetchType) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
         let entry = self.cache.get(key);
         match entry {
             Some(ent) => {
@@ -56,11 +55,7 @@ impl Cache {
         }
     }
 
-    pub fn set(
-        &mut self,
-        key: &(String, u64, u64, Option<u64>),
-        data: Arc<dyn std::any::Any + Send + Sync>,
-    ) {
+    pub fn set(&mut self, key: &FetchType, data: Arc<dyn std::any::Any + Send + Sync>) {
         // Dirty downcasting to unsigned char* type and get length.
         let data_size = data.downcast_ref::<Vec<u8>>().map_or(0, std::vec::Vec::len);
 
@@ -74,7 +69,7 @@ impl Cache {
         self.total_size += data_size;
     }
 
-    fn remove_entry(&mut self, key: &(String, u64, u64, Option<u64>)) {
+    fn remove_entry(&mut self, key: &FetchType) {
         let ent = self.cache.remove(key);
         if let Some(ent) = ent {
             self.total_size -= ent.size;

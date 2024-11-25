@@ -4,6 +4,18 @@ use serde_with::{serde_as, DisplayFromStr};
 /// Base URL for `AmariBot` API.
 pub const BASE_URL: &str = "https://amaribot.com/api/v1";
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum FetchType {
+    /// (guild id, page, limit)
+    Leaderboard(u64, u32, u32),
+    /// (guild id, page, limit)
+    WeeklyLeaderboard(u64, u32, u32),
+    /// (guild id, page, limit)
+    Reward(u64, u32, u32),
+    /// (guild id, user id)
+    User(u64, u64),
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Leaderboard {
     pub count: u64,

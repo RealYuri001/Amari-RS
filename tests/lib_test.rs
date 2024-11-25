@@ -6,9 +6,7 @@ mod tests {
     async fn test_client() {
         dotenv().expect("Failed to load .env file");
         let token: String = std::env::var("AMARI_TOKEN").unwrap();
-
-        let mut client = AmariClient::new();
-        client.init(token);
+        let mut client = AmariClient::new(token);
 
         let mut user = client
             .fetch_user(1087783849183940708, 607197619193643029, true)
