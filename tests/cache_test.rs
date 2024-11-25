@@ -45,19 +45,19 @@ mod tests {
         let mut client = AmariClient::new(token);
 
         let start = std::time::Instant::now();
-        let user = client.fetch_user(1087783849183940708, 607197619193643029).await;
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
 
         println!("Before cache: {}", start.elapsed().as_secs_f64());
         println!("User: {:#?}", user.unwrap().id);
 
         let start = std::time::Instant::now();
-        let user = client.fetch_user(1087783849183940708, 607197619193643029).await;
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
 
         println!("After cache: {}", start.elapsed().as_secs_f64());
         println!("User: {:#?}", user.unwrap());
 
         let start = std::time::Instant::now();
-        let user = client.fetch_user(1087783849183940708, 607197619193643029).await;
+        let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
 
         println!(
             "After cache (second time): {}",
