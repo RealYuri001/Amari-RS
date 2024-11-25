@@ -2,8 +2,8 @@ mod tests {
     use amari_rs::api::AmariClient;
     use dotenvy::dotenv;
 
-    use std::sync::Arc;
     use amari_rs::cache::Cache;
+    use std::sync::Arc;
 
     #[test]
     fn test_all() {
@@ -18,7 +18,9 @@ mod tests {
         assert_eq!(data1.len(), 3);
         dbg!(&data1[0]);
 
-        struct X { test: u64 }
+        struct X {
+            test: u64,
+        }
         let data2 = X { test: 4423 };
 
         cache.set(&("test2".into(), 112, 2, None), Arc::new(data2));
@@ -34,12 +36,12 @@ mod tests {
     async fn cache_bench() {
         dotenv().expect("Failed to load .env file");
 
-        let mut client = AmariClient::new();
-        client.init(std::env::var("AMARI_TOKEN").unwrap());
+        let token = std::env::var("AMARI_TOKEN").unwrap();
+        let mut client = AmariClient::new(token);
 
         let start = std::time::Instant::now();
         let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
-        
+
         println!("Before cache: {}", start.elapsed().as_secs_f64());
         println!("User: {:#?}", user.unwrap().id);
 
@@ -52,7 +54,10 @@ mod tests {
         let start = std::time::Instant::now();
         let user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
 
-        println!("After cache (second time): {}", start.elapsed().as_secs_f64());
+        println!(
+            "After cache (second time): {}",
+            start.elapsed().as_secs_f64()
+        );
         println!("User: {:#?}", user.unwrap());
     }
 }

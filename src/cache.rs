@@ -37,7 +37,10 @@ impl Cache {
         }
     }
 
-    pub fn get(&mut self, key: &(String, u64, u64, Option<u64>)) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
+    pub fn get(
+        &mut self,
+        key: &(String, u64, u64, Option<u64>),
+    ) -> Option<Arc<dyn std::any::Any + Send + Sync>> {
         let entry = self.cache.get(key);
         match entry {
             Some(ent) => {
@@ -52,7 +55,11 @@ impl Cache {
         }
     }
 
-    pub fn set(&mut self, key: &(String, u64, u64, Option<u64>), data: Arc<dyn std::any::Any + Send + Sync>) {
+    pub fn set(
+        &mut self,
+        key: &(String, u64, u64, Option<u64>),
+        data: Arc<dyn std::any::Any + Send + Sync>,
+    ) {
         // Dirty downcasting to unsigned char* type and get length.
         let data_size = data.downcast_ref::<Vec<u8>>().map(|v| v.len()).unwrap_or(0);
 
