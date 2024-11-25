@@ -4,8 +4,8 @@ use reqwest::{
 };
 use std::{collections::HashMap, sync::Arc};
 
-use super::defs::{Leaderboard, Rewards, User, Users, BASE_URL};
 use crate::cache::Cache;
+use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
 
 /// The client used to make requests to the Amari API.
 ///
@@ -34,7 +34,6 @@ impl AmariClient {
     {
         let client: ClientBuilder = ClientBuilder::new();
         let mut default_header = HeaderMap::new();
-
         default_header.insert(header::AUTHORIZATION, token.as_ref().parse().unwrap());
 
         AmariClient {
@@ -48,11 +47,11 @@ impl AmariClient {
         guild_id: u64,
         user_id: u64,
         cache: bool,
-    ) -> Result<User, reqwest::Error> {
+    ) -> reqwest::Result<User> {
         let url = format!("{BASE_URL}/guild/{guild_id}/member/{user_id}");
         if cache {
-            let key = &("fetch_user".into(), guild_id, user_id, None);
-            let data = self.cacher.get(key);
+            let key = FetchType::User(guild_id, user_id);
+            let data = self.cacher.get(&key);
 
             if data.is_some() {
                 return Ok(data.unwrap().downcast_ref::<User>().unwrap().clone());
@@ -61,7 +60,7 @@ impl AmariClient {
             let data = self.client.get(url.clone()).send().await?;
             let conv = data.json::<User>().await?;
 
-            self.cacher.set(key, Arc::new(conv.clone()));
+            self.cacher.set(&key, Arc::new(conv.clone()));
             return Ok(conv);
         }
 
@@ -74,14 +73,14 @@ impl AmariClient {
         guild_id: u64,
         user_ids: Vec<u64>,
         cache: bool,
-    ) -> Result<Users, reqwest::Error> {
+    ) -> reqwest::Result<Users> {
         if cache {
             let mut users: Vec<User> = Vec::new();
             let mut uncached_users: Vec<u64> = Vec::new();
 
             for user_id in user_ids.clone() {
-                let key = &("fetch_user".into(), guild_id, user_id, None);
-                if let Some(user) = self.cacher.get(key) {
+                let key = FetchType::User(guild_id, user_id);
+                if let Some(user) = self.cacher.get(&key) {
                     users.push(user.downcast_ref::<User>().unwrap().clone());
                 } else {
                     uncached_users.push(user_id);
@@ -100,8 +99,8 @@ impl AmariClient {
                 let raw_json: Users = send_data.json().await?;
 
                 for user in raw_json.members {
-                    let key = &("fetch_user".into(), guild_id, user.id, None);
-                    self.cacher.set(key, Arc::new(user.clone()));
+                    let key = FetchType::User(guild_id, user.id);
+                    self.cacher.set(&key, Arc::new(user.clone()));
 
                     users.push(user);
                 }
@@ -162,18 +161,13 @@ impl AmariClient {
     pub async fn fetch_rewards(
         &mut self,
         guild_id: u64,
-        page: Option<usize>,
-        limit: Option<usize>,
+        page: Option<u32>,
+        limit: Option<u32>,
         cache: bool,
     ) -> Result<Rewards, reqwest::Error> {
         if cache {
-            let key = &(
-                "fetch_rewards".into(),
-                guild_id,
-                page.unwrap_or(1) as u64,
-                Some(limit.unwrap_or(50) as u64),
-            );
-            if let Some(rewards) = self.cacher.get(key) {
+            let key = FetchType::Reward(guild_id, page.unwrap_or(1), limit.unwrap_or(50));
+            if let Some(rewards) = self.cacher.get(&key) {
                 return Ok(rewards.downcast_ref::<Rewards>().unwrap().clone());
             }
         }

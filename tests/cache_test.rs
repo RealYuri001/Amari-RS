@@ -1,5 +1,5 @@
 mod tests {
-    use amari_rs::api::AmariClient;
+    use amari_rs::{api::AmariClient, defs::FetchType};
     use dotenvy::dotenv;
 
     use amari_rs::cache::Cache;
@@ -10,9 +10,11 @@ mod tests {
         let mut cache = Cache::new(1000, 256 * 1024 * 1024);
         let test1: Vec<u8> = vec![1, 2, 3];
 
-        cache.set(&("test".into(), 111, 0, None), Arc::new(test1.clone()));
+        let key = FetchType::User(111, 0);
+        cache.set(&key, Arc::new(test1.clone()));
 
-        let grab1 = cache.get(&("test".into(), 111, 0, None)).unwrap();
+        let new_key = FetchType::User(111, 0);
+        let grab1 = cache.get(&new_key).unwrap();
         let data1 = grab1.downcast_ref::<Vec<u8>>().unwrap();
 
         assert_eq!(data1.len(), 3);
@@ -23,8 +25,11 @@ mod tests {
         }
         let data2 = X { test: 4423 };
 
-        cache.set(&("test2".into(), 112, 2, None), Arc::new(data2));
-        let grab2 = cache.get(&("test2".into(), 112, 2, None)).unwrap();
+        let key = FetchType::User(112, 2);
+        cache.set(&key, Arc::new(data2));
+
+        let new_key = FetchType::User(112, 2);
+        let grab2 = cache.get(&new_key).unwrap();
 
         let data2 = grab2.downcast_ref::<X>().unwrap();
         assert_eq!(data2.test, 4423);
