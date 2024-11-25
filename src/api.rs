@@ -18,8 +18,8 @@ use crate::cache::Cache;
 ///
 /// dotenv().expect("Failed to load .env file");
 ///
-/// let mut client = AmariClient::new();
-/// client.init(env::var("AMARI_TOKEN").unwrap());
+/// let token = env::var("AMARI_TOKEN").unwrap();
+/// let mut client = AmariClient::new(token);
 /// ```
 #[derive(Debug, Clone)]
 pub struct AmariClient {
