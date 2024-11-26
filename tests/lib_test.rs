@@ -4,7 +4,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_client() {
-        dotenv().expect("Failed to load .env file");
+        if dotenv().is_err() {
+            println!("Failed to load .env file. Ignoring...");
+        }
         let token: String = std::env::var("AMARI_TOKEN").unwrap();
         let mut client = AmariClient::new(token);
 
