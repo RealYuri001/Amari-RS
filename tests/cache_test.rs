@@ -39,7 +39,9 @@ mod tests {
 
     #[tokio::test]
     async fn cache_bench() {
-        dotenv().expect("Failed to load .env file");
+        if dotenv().is_err() {
+            println!("Failed to load .env file. Ignoring...");
+        }
 
         let token = std::env::var("AMARI_TOKEN").unwrap();
         let mut client = AmariClient::new(token);
