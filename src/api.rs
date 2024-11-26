@@ -177,7 +177,7 @@ impl AmariClient {
         if raw.is_some() && raw.unwrap_or(false) {
             url = format!("{BASE_URL}/guild/raw/{lb_type}/{guild_id}");
         } else {
-            url = format!("{BASE_URL}/guild/{lb_type}/{guild_id}/members");
+            url = format!("{BASE_URL}/guild/{lb_type}/{guild_id}");
         }
 
         let data = self.client.get(url).query(&params).send().await?;

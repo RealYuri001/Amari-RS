@@ -18,10 +18,12 @@ pub enum FetchType {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Leaderboard {
+    #[serde(alias = "queried_members", alias = "count")]
     pub count: u64,
     #[serde(rename = "data")]
     pub users: Vec<User>,
-    pub total_count: u64,
+    #[serde(alias = "total_count")]
+    pub total_members: u64,
 }
 
 #[serde_as]

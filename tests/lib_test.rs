@@ -36,7 +36,7 @@ mod tests {
         dbg!(&lb);
 
         assert_eq!(lb.unwrap().count, 5);
-        let rewards = client.fetch_rewards(1087783849183940708, None, Some(5), true).await;
+        let rewards = client.fetch_rewards(1087783849183940708, None, Some(5), false).await;
 
         dbg!(&rewards);
         assert_eq!(rewards.unwrap().count, 5);
