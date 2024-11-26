@@ -25,7 +25,7 @@ impl CacheEntry {
 pub struct Cache {
     ttl: u32,
     max_bytes: usize,
-    cache: HashMap<FetchType, CacheEntry>, // TODO: Fix this type.
+    cache: HashMap<FetchType, CacheEntry>,
     total_size: usize,
 }
 
@@ -58,7 +58,6 @@ impl Cache {
     pub fn set(&mut self, key: &FetchType, data: Arc<dyn std::any::Any + Send + Sync>) {
         // Dirty downcasting to unsigned char* type and get length.
         let data_size = data.downcast_ref::<Vec<u8>>().map_or(0, std::vec::Vec::len);
-
         if self.total_size + data_size > self.max_bytes {
             self.enforce_size_limit();
         }

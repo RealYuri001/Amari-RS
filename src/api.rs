@@ -1,10 +1,10 @@
+use crate::cache::Cache;
+use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
 use reqwest::{
     header::{self, HeaderMap},
     Client, ClientBuilder,
 };
 use std::{collections::HashMap, sync::Arc};
-use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
-use crate::cache::Cache;
 
 /// The client used to make requests to the Amari API.
 ///
@@ -35,7 +35,7 @@ impl AmariClient {
         let mut default_header = HeaderMap::new();
         default_header.insert(header::AUTHORIZATION, token.as_ref().parse().unwrap());
 
-        AmariClient {
+        Self {
             client: client.default_headers(default_header).build().unwrap(),
             cacher: Cache::new(60, 256 * 1024 * 1024),
         }
@@ -86,7 +86,7 @@ impl AmariClient {
                 }
             }
 
-            if uncached_users.len() > 0 {
+            if !uncached_users.is_empty() {
                 let converted: Vec<String> =
                     uncached_users.iter().map(|&x| x.to_string()).collect();
                 let mut body = HashMap::new();
@@ -132,8 +132,28 @@ impl AmariClient {
         raw: Option<bool>,
         page: Option<usize>,
         limit: Option<usize>,
+        cache: bool,
     ) -> reqwest::Result<Leaderboard> {
-        // Doesn't support caching until caching system is improved.
+        let mut key: FetchType;
+        if cache {
+            if weekly.is_some() && weekly.unwrap_or(false) {
+                key = FetchType::Leaderboard(
+                    guild_id,
+                    page.unwrap_or(1) as u32,
+                    limit.unwrap_or(50) as u32,
+                );
+            } else {
+                key = FetchType::WeeklyLeaderboard(
+                    guild_id,
+                    page.unwrap_or(1) as u32,
+                    limit.unwrap_or(50) as u32,
+                );
+            }
+
+            if let Some(leaderboard) = self.cacher.get(&key) {
+                return Ok(leaderboard.downcast_ref::<Leaderboard>().unwrap().clone());
+            }
+        }
 
         let mut params = HashMap::new();
         let weekly = weekly.unwrap_or(false);
@@ -152,10 +172,36 @@ impl AmariClient {
         }
 
         let lb_type = if weekly { "weekly" } else { "leaderboard" };
-        let url = format!("{BASE_URL}/guild/{lb_type}/{guild_id}");
+        let url: String;
 
-        let data = self.client.get(url).query(&params).send().await.unwrap();
-        data.json::<Leaderboard>().await
+        if raw.is_some() && raw.unwrap_or(false) {
+            url = format!("{BASE_URL}/guild/raw/{lb_type}/{guild_id}");
+        } else {
+            url = format!("{BASE_URL}/guild/{lb_type}/{guild_id}/members");
+        }
+
+        let data = self.client.get(url).query(&params).send().await?;
+        let lb = data.json::<Leaderboard>().await?;
+
+        if cache {
+            if weekly {
+                key = FetchType::Leaderboard(
+                    guild_id,
+                    page.unwrap_or(1) as u32,
+                    limit.unwrap_or(50) as u32,
+                );
+            } else {
+                key = FetchType::WeeklyLeaderboard(
+                    guild_id,
+                    page.unwrap_or(1) as u32,
+                    limit.unwrap_or(50) as u32,
+                );
+            }
+
+            self.cacher.set(&key, Arc::new(lb.clone()));
+        }
+
+        Ok(lb)
     }
 
     pub async fn fetch_rewards(

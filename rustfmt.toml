@@ -2,3 +2,4 @@ chain_width = 80
 group_imports = "StdExternalCrate"
 imports_layout = "HorizontalVertical"
 wrap_comments = true
+edition = "2021"

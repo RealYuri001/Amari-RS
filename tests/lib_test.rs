@@ -8,14 +8,10 @@ mod tests {
         let token: String = std::env::var("AMARI_TOKEN").unwrap();
         let mut client = AmariClient::new(token);
 
-        let mut user = client
-            .fetch_user(1087783849183940708, 607197619193643029, true)
-            .await;
+        let mut user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
         dbg!(&user);
 
-        user = client
-            .fetch_user(1087783849183940708, 607197619193643029, true)
-            .await;
+        user = client.fetch_user(1087783849183940708, 607197619193643029, true).await;
 
         assert_eq!(user.unwrap().id, 607197619193643029);
         let users = client
@@ -33,14 +29,12 @@ mod tests {
         );
 
         let lb = client
-            .fetch_leaderboard(1087783849183940708, None, None, None, Some(5))
+            .fetch_leaderboard(1087783849183940708, None, None, None, Some(5), true)
             .await;
         dbg!(&lb);
 
         assert_eq!(lb.unwrap().count, 5);
-        let rewards = client
-            .fetch_rewards(1087783849183940708, None, Some(5), true)
-            .await;
+        let rewards = client.fetch_rewards(1087783849183940708, None, Some(5), true).await;
 
         dbg!(&rewards);
         assert_eq!(rewards.unwrap().count, 5);
