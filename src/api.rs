@@ -15,7 +15,9 @@ use std::{collections::HashMap, sync::Arc};
 /// use std::env;
 /// use dotenvy::dotenv;
 ///
-/// dotenv().expect("Failed to load .env file");
+/// if dotenv().is_err() {
+///     println!("Failed to load .env file. Skipping...");
+/// }
 ///
 /// let token = env::var("AMARI_TOKEN").unwrap();
 /// let mut client = AmariClient::new(token);
