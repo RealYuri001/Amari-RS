@@ -4,6 +4,7 @@ use reqwest::{
 };
 use std::{collections::HashMap, sync::Arc};
 use crate::defs::{FetchType, Leaderboard, Rewards, User, Users, BASE_URL};
+use crate::cache::Cache;
 
 /// The client used to make requests to the Amari API.
 ///
@@ -36,6 +37,8 @@ impl AmariClient {
 
         AmariClient {
             client: client.default_headers(default_header).build().unwrap(),
+            cacher: Cache::new(60, 256 * 1024 * 1024),
+        }
     }
 
     pub async fn fetch_user(
