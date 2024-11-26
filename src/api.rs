@@ -37,7 +37,7 @@ impl AmariClient {
 
         Self {
             client: client.default_headers(default_header).build().unwrap(),
-            cacher: Cache::new(60, 256 * 1024 * 1024),
+            cacher: Cache::new(60, 64 * 1024 * 1024),
         }
     }
 
@@ -228,7 +228,14 @@ impl AmariClient {
         params.insert("limit", limit);
 
         let data = self.client.get(url).query(&params).send().await.unwrap();
-        data.json::<Rewards>().await
+        let rewards = data.json::<Rewards>().await?;
+
+        if cache {
+            let key = FetchType::Reward(guild_id, page, limit);
+            self.cacher.set(&key, Arc::new(rewards.clone()));
+        }
+
+        Ok(rewards)
     }
 }
 
